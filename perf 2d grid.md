@@ -17,12 +17,46 @@ So it's a nearest neighbour summation plus a float times the current element. A 
 
 This article compares the runtime with the following approaches:
 
- - Pure Python 2 with the grid as a list of lists.
- - NumPy with the grid as a `ndarray`
- - Numba accelerated NumPy
- - PyPy
- - Pure C++ with a `std::vector<std::vector< int > >`
- - C++ with the popular Eigen3 template library with a `Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>`
+- Pure Python 2 with the grid as a list of lists.
+- NumPy with the grid as a `ndarray`
+- Numba accelerated NumPy
+- PyPy
+- Pure C++ with a `std::vector<std::vector< int > >`
+- C++ with the popular Eigen3 template library with a `Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic>`
+
+The relevant code for the core computation:
+### Python
+```python
+result = 0
+for i in range(1,N-1):
+	for j in range(1,N-1):
+		result += grid[i][j-1] + grid[i][j+1] + grid[i-1][j] + grid[i+1][j] + grid[i][j] * 1.42
+```
+Replacing this loop with a list comprehension did not provide significant speedups!
+
+### NumPy + Numba
+```python
+lattice[1:-1,1:-1] = lattice[2:,1:-1]  + lattice[:-2,1:-1] + lattice[1:-1,2:] +
+                     lattice[1:-1,:-2] + lattice[1:-1,1:-1] * 1.42
+result = np.sum(lattice)
+```
+
+### C++
+```python
+double result = 0.0;
+for(int i=1; i<N-1; ++i)
+		for(int j=1; j<N-1; ++j)
+			result += grid[i][j-1] + grid[i][j+1] + grid[i-1][j] + grid[i+1][j] + grid[i][j]*1.42;
+```
+
+### Eigen
+```python
+double result = 0.0;
+for(int i=1; i<N-1; ++i)
+			for(int j=1; j<N-1; ++j)
+				result += array_eigen.coeff(i,j-1) + array_eigen.coeff(i,j+1) + array_eigen.coeff(i-1,j) +
+				array_eigen.coeff(i+1,j) + array_eigen.coeff(i,j) * 1.47;
+```
 
 ## Results and Discussion
 
@@ -37,6 +71,8 @@ Numpy  | 34.5   | 29.6
 Numba  | 33.1   | 30.9
 C++    | 7      | 145.9
 Eigen  | 3      | 340.4
+
+
 
 Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python!
 
