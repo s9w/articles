@@ -23,7 +23,7 @@ This article compares the runtime with the following approaches:
 
 # Results and Discussion
 
-![Alt Text](/images/perf_2D_grid_plot.png)
+![Alt Text](https://raw.githubusercontent.com/s9w/perf_2D-grid/master/perf_2D_grid_plot.png)
 
 For a grid length of 1600:
 
