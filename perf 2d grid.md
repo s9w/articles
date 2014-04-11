@@ -27,14 +27,13 @@ This article compares the runtime with the following approaches:
 
 For a grid length of 1600:
 
-.   | ms | relative speedup
--------|-----|-
+       | ms     | relative speedup
+------ | ------ | ----------------
 Python | 1021.2 | 1.0
-Numpy  | 34.5 | 29.6
-Numba  | 33.1 | 30.9
-C++    | 7 | 145.9
-Eigen  | 3  | 340.4
-
+Numpy  | 34.5   | 29.6
+Numba  | 33.1   | 30.9
+C++    | 7      | 145.9
+Eigen  | 3      | 340.4
 
 Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python!
 
