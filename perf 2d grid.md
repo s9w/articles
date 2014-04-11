@@ -55,12 +55,12 @@ for(int i=1; i<N-1; ++i)
 
 For a grid length of 1600:
 
-       | ms     | relative speedup
------- | ------ | ----------------
-Python | 1021.2 | 1.0
-Numpy  | 34.5   | 29.6
-Numba  | 33.1   | 30.9
-C++    | 7      | 145.9
+       | relative speed
+------ | --------------:
+Python |   1.0
+Numpy  |  29.6
+Numba  |  30.9
+C++    | 145.9
 
 Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python! The NumPy performance boost comes from the use of NumPy's highly efficient broadcasting.
 
