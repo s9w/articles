@@ -2,11 +2,12 @@
 
 The program has a randomized 2D array on which a nested loop of this kind is iterated:
 
-	:::cpp
-	double result = 0;
-	for(int i=1; i<N-1; ++i)
-		for(int j=1; j<N-1; ++j)
-			result += grid[i][j-1] + grid[i][j+1] + grid[i-1][j] + grid[i+1][j] + grid[i][j] * some_float;
+```cpp
+double result = 0;
+for(int i=1; i<N-1; ++i)
+	for(int j=1; j<N-1; ++j)
+		result += grid[i][j-1] + grid[i][j+1] + grid[i-1][j] + grid[i+1][j] + grid[i][j] * some_float;
+```
 
 So it's a nearest neighbour summation plus a float times the current element. A 2D Ising model would be an example for this kind of computation.
 
@@ -39,9 +40,10 @@ Numpy vastly outperforms the native python implementation. But it's valuable to 
 
 The NumPy performance boost comes from the use of NumPy's broadcasting. It can be used to rewrite the loop as
 
-	:::cpp
-	grid[1:-1,1:-1] = grid[2:,1:-1]  + grid[:-2,1:-1] + grid[1:-1,2:] + grid[1:-1,:-2] + grid[1:-1,1:-1] * some_float
-	result = np.sum(lattice)
+```cpp
+grid[1:-1,1:-1] = grid[2:,1:-1]  + grid[:-2,1:-1] + grid[1:-1,2:] + grid[1:-1,:-2] + grid[1:-1,1:-1] * some_float
+result = np.sum(lattice)
+```
 
 This exports the looping from the interpreter to C functions which explains the boost.
 
