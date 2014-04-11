@@ -73,17 +73,7 @@ C++    | 7      | 145.9
 Eigen  | 3      | 340.4
 
 
-
-Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python!
-
-The NumPy performance boost comes from the use of NumPy's broadcasting. It can be used to rewrite the loop as
-
-```cpp
-grid[1:-1,1:-1] = grid[2:,1:-1]  + grid[:-2,1:-1] + grid[1:-1,2:] + grid[1:-1,:-2] + grid[1:-1,1:-1] * some_float
-result = np.sum(lattice)
-```
-
-This exports the looping from the interpreter to C functions which explains the boost.
+Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python! The NumPy performance boost comes from the use of NumPy's highly efficient broadcasting.
 
 I tried [Numba](http://numba.pydata.org)'s JIT compiler but it only gains about 5%.
 
@@ -91,28 +81,26 @@ I also tried PyPy, but it didn't improve performance for this program at all. Re
 
 The jump to C++ again dramatically reduces runtime with a factor of  5 compared to NumPy. And then it gets a little complicated. For further optimization, I tried Linux, PGO (profile guided optimization) and the popular Eigen library. Rough results:
 
- [ms] | C++ | Eigen
- -----------------|-----|-
- Windows          | 19  | 10
- Windows with PGO | 19  | 10
- Linux            | 19  | 18
- Linux with PGO   | 12  | 12
+[ms] | C++ | Eigen
+---------------- | --- | ---
+Windows          | 19  | 10
+Windows with PGO | 19  | 10
+Linux            | 19  | 18
+Linux with PGO   | 12  | 12
 
- So apparently PGO only seems to work under Linux and Eigen is only faster under Windows. Not sure what to make of this. Possibly the later gcc version under Windows (4.8.2 vs 4.8.1) might explain part of this. For the Graph, I used the 4.8.2 version. My takeaways:
+So apparently PGO only seems to work under Linux and Eigen is only faster under Windows. Not sure what to make of this. Possibly the later gcc version under Windows (4.8.2 vs 4.8.1) might explain part of this. For the Graph, I used the 4.8.2 version. My takeaways:
 
- - Both Numpy and C++ provided massive improvements and are the "Winners". Especially since NumPy is very fast to write and C++ becomes more so with C++11.
- - PGO and Eigen are in the realm of "try, but don't count on it".
- - Numba and PyPy were disappointing. For this problem, there is also more to be gained from being cleverer and low level optimizations. Improving cache hits is probably a worthwile endeavour due to the random-ish access pattern. That's also supported by high cache misses of between 20% and 40%.
+- Both Numpy and C++ provided massive improvements and are the "Winners". Especially since NumPy is very fast to write and C++ becomes more so with C++11.
+- PGO and Eigen are in the realm of "try, but don't count on it".
+- Numba and PyPy were disappointing. For this problem, there may also more to be gained from being cleverer and low level optimizations. Improving cache hits is probably a worthwile endeavour due to the random-ish access pattern. That's also supported by high cache misses of between 20% and 40%. Maybe fiddling with GCCs `__builtin_prefetch` or a more sophisticated approach work.
 
- [Source Code](https://github.com/s9w/perf_2D-grid)
+[Source Code](https://github.com/s9w/perf_2D-grid)
 
 ## Notes:
 
 - Don't forget your C++ compiler `-O3` flag, this makes an order of magnitude difference.
 - Parallel optimisations weren't the topic of this comparison, a quick test with OpenMP yielded linear improvements with my 4 cores though.
-- First, pure C++ outperformed Eigen by a factor of 4. The default memory layout turned out to be non-optimal. Switching rows and columns fixed this to an exactly equal performance. So apparently this default is different from usual practice, worth keeping in mind. See [Eigen: Storage orders](http://eigen.tuxfamily.org/dox/group__TopicStorageOrders.html).
-- Numpy's broadcasting is trivially easy, extremely fast in allocation time and a huge boost from normal python. For a Performance Gain per Effort side, this was the clear winner. Also it's much more sophisticated that Eigens broadcasting because it supports broadcasting between two arrays and not just with a vector.
-- There is probably room for more. Maybe fiddling with GCCs `__builtin_prefetch` can further increse cache 
+- With default options, pure C++ outperformed Eigen. The default memory layout turned out to be non-optimal. Switching rows and columns fixed this to an exactly equal performance. So apparently this default is different from usual practice, worth keeping in mind. See [Eigen: Storage orders](http://eigen.tuxfamily.org/dox/group__TopicStorageOrders.html).
 
 ## Used Versions
 - Python 2.7.6
