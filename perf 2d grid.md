@@ -19,7 +19,7 @@ This article compares the runtime with the following approaches:
 
 - Pure Python 2 with the grid as a list of lists.
 - NumPy with the grid as a `ndarray`
-- Numba accelerated NumPy
+- NumPy + Numba
 - PyPy
 - Pure C++ with a `std::vector<std::vector< int > >`
 - C++ with the popular Eigen3 template library with a `Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic>`
