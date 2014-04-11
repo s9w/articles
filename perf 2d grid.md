@@ -1,4 +1,6 @@
-# Test computation
+# Performance comparison between Python, NumPy, C++ and friends for a typical physics 2D grid computation
+
+## Test problem
 
 The program has a randomized 2D array on which a nested loop of this kind is iterated:
 
@@ -11,7 +13,7 @@ for(int i=1; i<N-1; ++i)
 
 So it's a nearest neighbour summation plus a float times the current element. A 2D Ising model would be an example for this kind of computation.
 
-# Candidates
+## Candidates
 
 This article compares the runtime with the following approaches:
 
@@ -22,7 +24,7 @@ This article compares the runtime with the following approaches:
  - Pure C++ with a `std::vector<std::vector< int > >`
  - C++ with the popular Eigen3 template library with a `Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic>`
 
-# Results and Discussion
+## Results and Discussion
 
 ![Alt Text](https://raw.githubusercontent.com/s9w/perf_2D-grid/master/perf_2D_grid_plot.png)
 
@@ -68,7 +70,7 @@ The jump to C++ again dramatically reduces runtime with a factor of  5 compared 
 
  [Source Code](https://github.com/s9w/perf_2D-grid)
 
-# Notes:
+## Notes:
 
 - Don't forget your C++ compiler `-O3` flag, this makes an order of magnitude difference.
 - Parallel optimisations weren't the topic of this comparison, a quick test with OpenMP yielded linear improvements with my 4 cores though.
@@ -76,7 +78,7 @@ The jump to C++ again dramatically reduces runtime with a factor of  5 compared 
 - Numpy's broadcasting is trivially easy, extremely fast in allocation time and a huge boost from normal python. For a Performance Gain per Effort side, this was the clear winner. Also it's much more sophisticated that Eigens broadcasting because it supports broadcasting between two arrays and not just with a vector.
 - There is probably room for more. Maybe fiddling with GCCs `__builtin_prefetch` can further increse cache 
 
-# Used Versions
+## Used Versions
 - Python 2.7.6
 - PyPy 2.0.2
 - GCC 4.8.2 (Windows) and 4.8.1 (Linux)
