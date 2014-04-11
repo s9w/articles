@@ -49,15 +49,6 @@ for(int i=1; i<N-1; ++i)
 			result += grid[i][j-1] + grid[i][j+1] + grid[i-1][j] + grid[i+1][j] + grid[i][j]*1.42;
 ```
 
-### Eigen
-```python
-double result = 0.0;
-for(int i=1; i<N-1; ++i)
-			for(int j=1; j<N-1; ++j)
-				result += array_eigen.coeff(i,j-1) + array_eigen.coeff(i,j+1) + array_eigen.coeff(i-1,j) +
-				array_eigen.coeff(i+1,j) + array_eigen.coeff(i,j) * 1.47;
-```
-
 ## Results and Discussion
 
 ![Alt Text](https://raw.githubusercontent.com/s9w/perf_2D-grid/master/perf_2D_grid_plot.png)
@@ -70,7 +61,6 @@ Python | 1021.2 | 1.0
 Numpy  | 34.5   | 29.6
 Numba  | 33.1   | 30.9
 C++    | 7      | 145.9
-Eigen  | 3      | 340.4
 
 
 Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python! The NumPy performance boost comes from the use of NumPy's highly efficient broadcasting.
@@ -79,16 +69,7 @@ I tried [Numba](http://numba.pydata.org)'s JIT compiler but it only gains about 
 
 I also tried PyPy, but it didn't improve performance for this program at all. Reasons unknown.
 
-The jump to C++ again dramatically reduces runtime with a factor of  5 compared to NumPy. And then it gets a little complicated. For further optimization, I tried Linux, PGO (profile guided optimization) and the popular Eigen library. Rough results:
-
-[ms] | C++ | Eigen
----------------- | --- | ---
-Windows          | 19  | 10
-Windows with PGO | 19  | 10
-Linux            | 19  | 18
-Linux with PGO   | 12  | 12
-
-So apparently PGO only seems to work under Linux and Eigen is only faster under Windows. Not sure what to make of this. Possibly the later gcc version under Windows (4.8.2 vs 4.8.1) might explain part of this. For the Graph, I used the 4.8.2 version. My takeaways:
+The jump to C++ again dramatically reduces runtime with a factor of 5 compared to NumPy. And then it gets a little complicated. For further optimization I tried PGO (profile guided optimization) and the popular Eigen library, but with inconsistent results. PGO did sometimes boost performance, but varying between compiler versions. Eigen did not show any improvements, but this was not expected since no eigen specific functions were used.
 
 - Both Numpy and C++ provided massive improvements and are the "Winners". Especially since NumPy is very fast to write and C++ becomes more so with C++11.
 - PGO and Eigen are in the realm of "try, but don't count on it".
