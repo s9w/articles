@@ -36,9 +36,9 @@ Replacing this loop with a list comprehension did not provide significant speedu
 
 ### NumPy + Numba
 ```python
-lattice[1:-1,1:-1] = lattice[2:,1:-1]  + lattice[:-2,1:-1] + lattice[1:-1,2:] +
-                     lattice[1:-1,:-2] + lattice[1:-1,1:-1] * 1.42
-result = np.sum(lattice)
+grid[1:-1,1:-1] = grid[2:,1:-1]  + grid[:-2,1:-1] + grid[1:-1,2:] +
+                     grid[1:-1,:-2] + grid[1:-1,1:-1] * 1.42
+result = np.sum(grid)
 ```
 
 ### C++
@@ -61,7 +61,6 @@ Python | 1021.2 | 1.0
 Numpy  | 34.5   | 29.6
 Numba  | 33.1   | 30.9
 C++    | 7      | 145.9
-
 
 Numpy vastly outperforms the native python implementation. But it's valuable to recognize that the speedup doesn't just come from NumPy's arrays. If just the python list is replaced with a NumPy array but with the same nested loop, its performance is even worse than python! The NumPy performance boost comes from the use of NumPy's highly efficient broadcasting.
 
