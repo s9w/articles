@@ -66,7 +66,7 @@ Numpy vastly outperforms the native python implementation. But it's valuable to 
 
 I tried [Numba](http://numba.pydata.org)'s JIT compiler but it only gains about 5%.
 
-I also tried PyPy, but it didn't improve performance for this program at all. Reasons unknown.
+I also tried PyPy, but it didn't improve performance for this program at all. Even with the nightly PyPy linux64 build from 2014-04-15 and their latest numpy fork from 2014-04-11, this was almost 5 times of vanilla Python+NumPy's runtime. Reasons unknown, I will try to revisit this in later builds.
 
 The jump to C++ again dramatically reduces runtime with a factor of 5 compared to NumPy. And then it gets a little complicated. For further optimization I tried PGO (profile guided optimization) and the popular Eigen library, but with inconsistent results. PGO did sometimes boost performance, but varying between compiler versions. Eigen did not show any improvements, but this was not expected since no eigen specific functions were used.
 
