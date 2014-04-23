@@ -17,7 +17,8 @@ PRNG                  | rng.max()  | runtime [ms]
 
 ## Random bit generation
 A common requirement for random data is random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive RNG call every time when we only need one of the 32 or 64 bits.
-A more efficient way is generating a number, and using one of its bits as long as there are unused ones. A look at the table reveals, that we get the most random bits per runtime from the `mt19937_64` generator. An implementation of this idea could be:
+
+A more efficient way is generating a number, and using one of its bits as long as there are unused ones. A glance at the table above reveals that we get the most random bits per runtime from the `mt19937_64` generator. An implementation of this idea could be:
 
 ```c++
 // static if recalled in a function
@@ -39,7 +40,7 @@ shifting | 9.4 | **1.00**
 
 So it's a huge boost for a little trick.
 
-One pitfall: Be aware of your RNGs number range. If the range is something like $2^{31}-2$ like the `default_random_engine` in my test, there is one number missing. Specifically the "11111....111" configuration. The error introduced by that is $\frac{1}{2^{31}-1}$ in this case. This is a small error, but keep this in mind for very numerically sensitive tasks. This applies to the shifting method as well as to the `rng()%2` way. A proper `dist_int(0,1)` should fix this though.
+One pitfall: Be aware of your RNGs number range. If the range is something like $2^{31}-2$ like the `default_random_engine` in my test, there is one number missing. Specifically the "11111....111" configuration. The error introduced by that is 1/(2^31-1) in this case. This is a small error, but keep this in mind for very numerically sensitive tasks. This applies to the shifting method as well as to the `rng()%2` way. A proper `dist_int(0,1)` should fix this though.
 
 ## Floats and doubles
 
