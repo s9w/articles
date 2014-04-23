@@ -64,5 +64,8 @@ A little warning: I encountered an odd performance drop (around a factor of 10!)
 ## Versions, source code
 g++ 4.8.2 on 64bit linux
 
+Source code [here][2]
+
 
   [1]: http://stackoverflow.com/questions/23240586
+  [2]: https://github.com/s9w/perf_cpp_random
