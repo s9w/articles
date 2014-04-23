@@ -4,11 +4,11 @@ Some of C++11's new pseudo-random number engines, plugged into a `uniform_int_di
 
 PRNG                  | rng.max()  | runtime [ms]
 --------------------- | ---------- | -----------:
-`rand()`                | $2^{31}-1$ |  71.5
-`default_random_engine` |$2^{31}-2$  | 190.6
-`mt19937`               | $2^{32}-1$ | 182.3
-`mt19937_64`            | $2^{64}-1$ | 181.3
-`minstd_rand`           | $2^{31}-2$ | 164.6
+`rand()`                | 2^31-1 |  71.5
+`default_random_engine` | 2^31-2  | 190.6
+`mt19937`               | 2^32-1 | 182.3
+`mt19937_64`            | 2^64-1 | 181.3
+`minstd_rand`           | 2^31-2 | 164.6
 
 
 - Not that much of a difference between the most common engines.
@@ -58,7 +58,7 @@ PRNG | type | runtime [ms] | runtime [arb]
 
 No surprises here, choose what you want.
 
-A little warning: I encountered an odd performance drop (around a factor of 10!) with the specific combination of clang compiler, `mt19937` (32 and 64bit) and `uniform_real_distribution` (float and double). But I could only reproduce this with clang, and that particular combination. Do a little testing beforehand if this applies to you. [Link][1] to stackoverflow discussion
+A little warning: I encountered an odd performance drop (around a factor of 10!) with the specific combination of clang compiler, `mt19937` (32 and 64bit) and `uniform_real_distribution` (float and double). But I could only reproduce this with clang (3.4), and that particular combination. Do a little testing beforehand if this applies to you. [Link][1] to stackoverflow discussion
 
 ## Versions, source code
 g++ 4.8.2 on 64bit linux
