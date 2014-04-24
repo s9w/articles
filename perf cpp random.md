@@ -10,7 +10,7 @@ int random_number = distribution(generator);
 Let's see how they perform on the runtime side. No evaluation is being done on the quality of the random numbers! 
 
 ## Integers
-The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10000000 numbers and writing them into a `std::vector`.
+The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`.
 
 PRNG                   | rng.max() | runtime [ms]
 ---------------------- | --------- | -----------:
@@ -42,7 +42,7 @@ random_bit = (random_ulong >> shifts) & 1;
 shifts++;
 ```
 
-Comparing the two in a scenario where 10000000 random bits are written in a sequential `vector`:
+Comparing the two in a scenario where 10'000'000 random bits are written in a sequential `vector`:
 
 . | runtime [ms] | runtime [arb]
 --- | ---: | ---:
@@ -55,7 +55,7 @@ One pitfall: Be aware of your RNGs number range. If the range is something like 
 
 ## Floats and doubles
 
-The PRNGs are plugged into float and double `uniform_real_distribution` and measured filling a 10000000 sized `vector`:
+The PRNGs are plugged into float and double `uniform_real_distribution` and measured filling a 10'000'000 sized `vector`:
 
 PRNG | type | runtime [ms] | runtime [arb]
 --- | :---: | ---: | ---:
