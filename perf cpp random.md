@@ -10,7 +10,7 @@ int random_number = distribution(generator);
 Let's see how they perform on the runtime side. No evaluation is being done on the quality of the random numbers! 
 
 ## Integers
-The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`.
+The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`. As a comparison, a constant number is written into the vector, aka "[xkcd random][4]".
 
 PRNG                   | rng.max() | runtime [ms]
 ---------------------- | --------- | -----------:
@@ -19,11 +19,14 @@ PRNG                   | rng.max() | runtime [ms]
 `mt19937`              | 2^32-1    | 182.3
 `mt19937_64`           | 2^64-1    | 181.3
 `minstd_rand`          | 2^31-2    | 164.6
+constant -> int           | -      |   3.8
+constant -> uint_fast64_t | -      |   7.7
 
 
 - Not that much of a difference between the most common engines.
 - The inclusion of `rand()` is just for comparison, keep in mind that it is not thread safe, usually has horrible numeric characteristics, and commonly (at least under mingw) only has a 15bit range.
 - Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `uint_fast64_t` to contain the full range.
+- The overhead for handling the array is relatively small, 2.1% and 4,3% of the runtime of the mt and mt62 calls respectively.
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -81,3 +84,4 @@ Source code [here][2]
   [1]: http://stackoverflow.com/questions/23240586
   [2]: https://github.com/s9w/perf_cpp_random
   [3]: http://www.cplusplus.com/reference/random/
+  [4]: http://xkcd.com/221/
