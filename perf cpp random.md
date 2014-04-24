@@ -7,7 +7,12 @@ std::uniform_int_distribution<int> distribution(0,42);
 int random_number = distribution(generator);
 ```
 
-Let's see how they and their boost counterparts perform on the runtime side. No evaluation is being done on the quality of the random numbers! 
+They're compared to their boost counterparts, "/dev/urandom", Intel's hardware [RdRand][6] and good old `rand()`. No evaluation is being done on the quality of the random numbers! 
+
+```c++
+std::random_device rng_rdevice_urand("/dev/urandom");
+std::random_device rng_rdevice_rdrand; // RdRand for Intel Ivy Bridge and above
+```
 
 ## Integers
 The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`. As a comparison, a constant number is written into the vector, aka "[xkcd random][4]".
@@ -21,6 +26,8 @@ PRNG                   | rng.max() | runtime [ms] | runtime [arb]
 `minstd_rand`          | 2^31-2    | 164.6 | 0.90
 boost `mt19937`        | 2^32-1    | 160.1 | 0.88
 boost `mt19937_64`     | 2^32-1    | 262.1 | 1.44
+/dev/urandom           | 2^32-1    | 2423.1 | 13.29
+RdRand                 | 2^32-1    | 447.2 | 2.45
 constant -> int           | -      |   3.8 | 0.02
 constant -> uint_fast64_t | -      |   7.7 | 0.04
 
@@ -30,6 +37,7 @@ constant -> uint_fast64_t | -      |   7.7 | 0.04
 - Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `uint_fast64_t` to contain the full range.
 - The overhead for handling the vector is relatively small, 2.1% and 4,3% of the runtime of the mt and mt62 calls respectively. So the random number generation is dominating this comparison.
 - Boost is slightly faster on the 32bit and a lot slower on the 64bit side. Runtimes of other boost generators can be estimated from a table in the [documentation][5].
+- Hardware numbers are rather slow, urandom is very slow!
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -65,16 +73,23 @@ The PRNGs are plugged into float and double `uniform_real_distribution` and meas
 
 PRNG | type | runtime [ms] | runtime [arb]
 --- | :---: | ---: | ---:
-`default_random_engine` | float | 42.7 | 0.95
-`mt19937` | float | 44.8 | **1.00**
-`mt19937_64` | float | 85.2 | 1.90
-`minstd_rand` | float | 42.6 | 0.95
-`default_random_engine` | double | 97.9 | 2.19
-`mt19937` | double | 88.7 | 1.98
-`mt19937_64` | double | 88.1 | 1.97
-`minstd_rand` | double | 98.0 | 2.19
+`default_random_engine` 	|	 float  	|	42.2	|	0.95
+`mt19937`               	|	 float  	|	44.2	|	1.00
+`mt19937_64`            	|	 float  	|	85.2	|	1.93
+`minstd_rand`           	|	 float  	|	42.2	|	0.95
+boost `mt19937`           	|	 float  	|	48.4	|	1.10
+boost `mt19937_64`           	|	 float  	|	74.9	|	1.69
+/dev/urandom            	|	 float  	|	2291.3	|	51.84
+RdRand                  	|	 float  	|	393.6	|	8.90
+`default_random_engine` 	|	 double 	|	97.3	|	2.20
+`mt19937`               	|	 double 	|	87.9	|	1.99
+`mt19937_64`            	|	 double 	|	87.6	|	1.98
+`minstd_rand`           	|	 double 	|	97.4	|	2.20
+boost `mt19937`           	|	 double 	|	108	|	2.44
+boost `mt19937_64`           	|	 double 	|	74.6	|	1.69
+/dev/urandom            	|	 double 	|	4577.7	|	103.57
+RdRand                  	|	 double 	|	782.5	|	17.70
 
-No surprises here, choose what you want.
 
 A little warning: I encountered an odd performance drop (around a factor of 10!) with the specific combination of clang compiler, `mt19937` (32 and 64bit) and `uniform_real_distribution` (float and double). But I could only reproduce this with clang (3.4), and that particular combination. Do a little testing beforehand if this applies to you. [Link][1] to stackoverflow discussion.
 
@@ -90,3 +105,4 @@ Source code [here][2]
   [3]: http://www.cplusplus.com/reference/random/
   [4]: http://xkcd.com/221/
   [5]: http://www.boost.org/doc/libs/1_55_0/doc/html/boost_random/reference.html#boost_random.reference.generators
+  [6]: http://en.wikipedia.org/wiki/RdRand
