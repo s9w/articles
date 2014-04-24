@@ -29,7 +29,7 @@ constant -> uint_fast64_t | -      |   7.7 | 0.04
 - The inclusion of `rand()` is just for comparison, keep in mind that it is not thread safe, usually has horrible numeric characteristics, and commonly (at least under mingw) only has a 15bit range.
 - Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `uint_fast64_t` to contain the full range.
 - The overhead for handling the vector is relatively small, 2.1% and 4,3% of the runtime of the mt and mt62 calls respectively.
-- Boost is slightly faster on the 32bit and a lot slower on the 64bit side. 
+- Boost is slightly faster on the 32bit and a lot slower on the 64bit side. Runtimes of other boost generators can be estimated from a table in the [documentation][5].
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -89,3 +89,4 @@ Source code [here][2]
   [2]: https://github.com/s9w/perf_cpp_random
   [3]: http://www.cplusplus.com/reference/random/
   [4]: http://xkcd.com/221/
+  [5]: http://www.boost.org/doc/libs/1_55_0/doc/html/boost_random/reference.html#boost_random.reference.generators
