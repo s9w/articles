@@ -7,26 +7,29 @@ std::uniform_int_distribution<int> distribution(0,42);
 int random_number = distribution(generator);
 ```
 
-Let's see how they perform on the runtime side. No evaluation is being done on the quality of the random numbers! 
+Let's see how they and their boost counterparts perform on the runtime side. No evaluation is being done on the quality of the random numbers! 
 
 ## Integers
 The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`. As a comparison, a constant number is written into the vector, aka "[xkcd random][4]".
 
-PRNG                   | rng.max() | runtime [ms]
----------------------- | --------- | -----------:
-`rand()`               | 2^31-1    |  71.5
-`default_random_engine`| 2^31-2    | 190.6
-`mt19937`              | 2^32-1    | 182.3
-`mt19937_64`           | 2^64-1    | 181.3
-`minstd_rand`          | 2^31-2    | 164.6
-constant -> int           | -      |   3.8
-constant -> uint_fast64_t | -      |   7.7
+PRNG                   | rng.max() | runtime [ms] | runtime [arb]
+---------------------- | --------- | -----------: | ---:
+`rand()`               | 2^31-1    |  71.5 | 0.39
+`default_random_engine`| 2^31-2    | 190.6 | 1.05
+`mt19937`              | 2^32-1    | 182.3 | **1.00**
+`mt19937_64`           | 2^64-1    | 181.3 | 0.99
+`minstd_rand`          | 2^31-2    | 164.6 | 0.90
+boost `mt19937`        | 2^32-1    | 160.1 | 0.88
+boost `mt19937_64`     | 2^32-1    | 262.1 | 1.44
+constant -> int           | -      |   3.8 | 0.02
+constant -> uint_fast64_t | -      |   7.7 | 0.04
 
 
 - Not that much of a difference between the most common engines.
 - The inclusion of `rand()` is just for comparison, keep in mind that it is not thread safe, usually has horrible numeric characteristics, and commonly (at least under mingw) only has a 15bit range.
 - Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `uint_fast64_t` to contain the full range.
 - The overhead for handling the vector is relatively small, 2.1% and 4,3% of the runtime of the mt and mt62 calls respectively.
+- Boost is slightly faster on the 32bit and a lot slower on the 64bit side. 
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -76,7 +79,8 @@ No surprises here, choose what you want.
 A little warning: I encountered an odd performance drop (around a factor of 10!) with the specific combination of clang compiler, `mt19937` (32 and 64bit) and `uniform_real_distribution` (float and double). But I could only reproduce this with clang (3.4), and that particular combination. Do a little testing beforehand if this applies to you. [Link][1] to stackoverflow discussion.
 
 ## Versions, source code
-g++ 4.8.2 on 64bit linux
+- g++ 4.8.2 on 64bit linux
+- boost 1.53
 
 Source code [here][2]
 
