@@ -23,7 +23,7 @@ PRNG                   | rng.max() | runtime [ms]
 
 - Not that much of a difference between the most common engines.
 - The inclusion of `rand()` is just for comparison, keep in mind that it is not thread safe, usually has horrible numeric characteristics, and commonly (at least under mingw) only has a 15bit range.
-- Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `unsigned long` to contain the full range.
+- Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `uint_fast64_t` to contain the full range.
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -32,7 +32,7 @@ A more efficient way is generating a number, and extract one of its bits with a 
 
 ```c++
 // static if recalled in a function
-static unsigned long random_ulong = rng();
+static uint_fast64_t random_ulong = rng();
 static int shifts = 0;
 if( shifts >= 63 ){
 	random_ulong = rng();
