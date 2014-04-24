@@ -74,7 +74,7 @@ The PRNGs are plugged into float and double `uniform_real_distribution` and meas
 PRNG | type | runtime [ms] | runtime [arb]
 --- | :---: | ---: | ---:
 `default_random_engine` 	|	 float  	|	42.2	|	0.95
-`mt19937`               	|	 float  	|	44.2	|	1.00
+`mt19937`               	|	 float  	|	44.2	|	**1.00**
 `mt19937_64`            	|	 float  	|	85.2	|	1.93
 `minstd_rand`           	|	 float  	|	42.2	|	0.95
 boost `mt19937`           	|	 float  	|	48.4	|	1.10
