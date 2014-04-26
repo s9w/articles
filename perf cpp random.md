@@ -14,30 +14,43 @@ std::random_device rng_rdevice_urand("/dev/urandom");
 std::random_device rng_rdevice_rdrand; // RdRand for Intel Ivy Bridge and above
 ```
 
-## Integers
-The engines are plugged into a `uniform_int_distribution<unsigned long>`. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`. As a comparison, a constant number is written into the vector, aka "[xkcd random][4]".
+## Call times
 
-PRNG                   | rng.max() | runtime [ms] | runtime [arb]
----------------------- | --------- | -----------: | ---:
-`rand()`               | 2^31-1    |  71.5 | 0.39
-`default_random_engine`| 2^31-2    | 190.6 | 1.05
-`mt19937`              | 2^32-1    | 182.3 | **1.00**
-`mt19937_64`           | 2^64-1    | 181.3 | 0.99
-`minstd_rand`          | 2^31-2    | 164.6 | 0.90
-boost `mt19937`        | 2^32-1    | 160.1 | 0.88
-boost `mt19937_64`     | 2^32-1    | 262.1 | 1.44
-/dev/urandom           | 2^32-1    | 2423.1 | 13.29
-RdRand                 | 2^32-1    | 447.2 | 2.45
-constant -> int           | -      |   3.8 | 0.02
-constant -> uint_fast64_t | -      |   7.7 | 0.04
+First the pure call times are compared, without using them with the distributions. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`. As a comparison, a constant number is written into the vector, aka "[xkcd random][4]".
 
+PRNG	|	rng.max()	|	runtime [ms]	|	runtime
+--------- | --------------------- | -------------------: | ---------:
+baseline_int	|	-	|	3.89	|	0.12
+baseline_uint_fast64_t	|	-	|	7.99	|	0.26
+std::default_random_engine	|	2^31-2	|	50.28	|	1.61
+std::mt19937	|	2^32-1	|	31.23	|	1.00
+std::mt19937_64	|	2^64-1	|	36.55	|	1.17
+std::minstd_rand	|	2^31-2	|	50.86	|	1.63
+boost::random::mt19937	|	2^32-1	|	19.95	|	0.64
+boost::random::mt19937_64	|	2^64-1	|	31.84	|	1.02
+RdRand	|	2^32-1	|	355.67	|	11.39
+/dev/urandom	|	2^32-1	|	2283.07	|	73.11
+rand()	|	2^31-1	|	71	|	2.27
 
-- Not that much of a difference between the most common engines.
+- Boost is fast, hardware numbers are disappointingly slow.
 - The inclusion of `rand()` is just for comparison, keep in mind that it is not thread safe, usually has horrible numeric characteristics, and commonly (at least under mingw) only has a 15bit range.
-- Be aware that these runtimes change when plugged into an inappropriate data type. `mt19937_64` needs an `uint_fast64_t` to contain the full range.
-- The overhead for handling the vector is relatively small, 2.1% and 4,3% of the runtime of the mt and mt62 calls respectively. So the random number generation is dominating this comparison.
-- Boost is slightly faster on the 32bit and a lot slower on the 64bit side. Runtimes of other boost generators can be estimated from a table in the [documentation][5].
-- Hardware numbers are rather slow, urandom is very slow!
+- The overhead for handling the vector is relatively small, so the random number generation is dominating this comparison.
+
+## Integers
+The generators are plugged into a `uniform_int_distribution<>` plus comparison to pure `rng()` calls.
+
+PRNG                   | runtime [ms] | runtime | dist(rng)/rng() | dist(rng)-rng()
+---------------------- | -----------: | ------: | --------------: | ---:
+std::default_random_engine	|	183.95	|	1.04	|	3.66	|	133.67
+std::mt19937	|	176.41	|	1.00	|	5.65	|	145.18
+std::mt19937_64	|	184.77	|	1.05	|	5.06	|	148.22
+std::minstd_rand	|	183.28	|	1.04	|	3.60	|	132.42
+boost::random::mt19937	|	95.66	|	0.54	|	4.79	|	75.71
+boost::random::mt19937_64	|	197.64	|	1.12	|	6.21	|	165.80
+RdRand	|	421.37	|	2.39	|	1.18	|	65.70
+/dev/urandom	|	2321.96	|	13.16	|	1.02	|	38.89
+
+- Surprise: There is a huge overhead from the `uniform_int_distribution`, boost and nonboost! No idea what's going on there, especially since the random_devices seem to be less afftected. Such an overhead is inexplicable to me.
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -90,6 +103,7 @@ boost `mt19937_64`           	|	 double 	|	74.6	|	1.69
 /dev/urandom            	|	 double 	|	4577.7	|	103.57
 RdRand                  	|	 double 	|	782.5	|	17.70
 
+TODO: comparison to call times
 
 A little warning: I encountered an odd performance drop (around a factor of 10!) with the specific combination of clang compiler, `mt19937` (32 and 64bit) and `uniform_real_distribution` (float and double). But I could only reproduce this with clang (3.4), and that particular combination. Do a little testing beforehand if this applies to you. [Link][1] to stackoverflow discussion.
 
