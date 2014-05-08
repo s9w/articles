@@ -1,22 +1,18 @@
-# Performance comparisons of C++ PRNGs
-C++11 introduces a nice `random` [header][3] which contains a variety of generators and distributions. They're typically used like this:
+# Performance comparisons of C++ RNGs
+C++11 introduces a nice `random` [header][3] which contains a variety of generators and distributions, including the ubiquitous Mersenne Twister 19937 algorithm in 32 and 64bit versions. They're typically used like this:
 
 ```c++
-std::default_random_engine generator;
+std::mt19937 generator;
 std::uniform_int_distribution<int> distribution(0,42);
-int random_number = distribution(generator);
+int random_number1 = generator;
+int random_number2 = distribution(generator);
 ```
-
-They're compared to their boost counterparts, "/dev/urandom", Intel's hardware [RdRand][6] and good old `rand()`. No evaluation is being done on the quality of the random numbers! 
-
-```c++
-std::random_device rng_rdevice_urand("/dev/urandom");
-std::random_device rng_rdevice_rdrand; // RdRand for Intel Ivy Bridge and above
-```
+When called without the distribution, the output is between 0 and their maximum. To evaluate the runtime penalty of the distributions, they're measured separately.
+This article compares some of the C++11 generators, their boost counterparts, "/dev/urandom", Intel's hardware [RdRand][6] and good old `rand()`.  No thorough evaluation is being done on the quality of the random numbers! 
 
 ## Call times
 
-First the pure call times are compared, without using them with the distributions. The runtime is for generating 10'000'000 numbers and writing them into a `std::vector`. As a comparison, a constant number is written into the vector, aka "[xkcd random][4]".
+First the pure call times are compared, without using them with the distributions. The runtime is for generating 10'000'000 ints and writing them into a `std::vector`, which is a typical use case. To make sure the RNG speed is measured and not the vector writing overhead, a constant number is written into the vector, aka "[xkcd random][4]" to serve as a baseline. Here's the data for GCC 4.8. The plot contains additional data for clang 3.4 and 
 
 PRNG	|	rng.max()	|	runtime [ms]	|	runtime
 --------- | --------------------- | -------------------: | ---------:
@@ -32,9 +28,10 @@ RdRand	|	2^32-1	|	355.67	|	11.39
 /dev/urandom	|	2^32-1	|	2283.07	|	73.11
 rand()	|	2^31-1	|	71	|	2.27
 
-- Boost is fast, hardware numbers are disappointingly slow.
-- The inclusion of `rand()` is just for comparison, keep in mind that it is not thread safe, usually has horrible numeric characteristics, and commonly (at least under mingw) only has a 15bit range.
-- The overhead for handling the vector is relatively small, so the random number generation is dominating this comparison.
+- Most RNGs are fast, especially Boost. On my machine, writing a boost::random::mt19937 into a vector takes just a little over 6 cycles!
+- Hardware numbers are disappointingly slow.
+- The inclusion of `rand()` is just for comparison, keep in mind that it usually has horrible numeric characteristics and commonly (at least under mingw) only has a 15bit range.
+- The overhead for handling the vector is relatively small, so the random number generation is dominating this comparison, as expected.
 
 ## Integers
 The generators are plugged into a `uniform_int_distribution<>` plus comparison to pure `rng()` calls.
@@ -108,7 +105,9 @@ TODO: comparison to call times
 A little warning: I encountered an odd performance drop (around a factor of 10!) with the specific combination of clang compiler, `mt19937` (32 and 64bit) and `uniform_real_distribution` (float and double). But I could only reproduce this with clang (3.4), and that particular combination. Do a little testing beforehand if this applies to you. [Link][1] to stackoverflow discussion.
 
 ## Versions, source code
-- g++ 4.8.2 on 64bit linux
+- g++ 4.8.1 on 64bit linux
+- ICC 14.0.2 20140120
+- clang 3.3
 - boost 1.53
 
 Source code [here][2]
