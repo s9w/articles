@@ -1,5 +1,5 @@
 # Performance comparisons of C++ RNGs
-C++11 introduces a nice `random` [header][3] which contains a variety of generators and distributions, including the ubiquitous Mersenne Twister 19937 algorithm in 32 and 64bit versions. They're typically used like this:
+C++11 introduces a nice [random header][3] which contains a variety of generators and distributions, including the ubiquitous Mersenne Twister 19937 algorithm in 32 and 64bit versions. They're typically used like this:
 
 ```c++
 std::mt19937 generator;
@@ -7,7 +7,8 @@ std::uniform_int_distribution<int> distribution(0,42); // beware inclusive range
 int random_number1 = generator;
 int random_number2 = distribution(generator);
 ```
-When called without the distribution, the output is between 0 and their maximum. To evaluate the runtime penalty of the distributions, they're measured separately.
+When called without the distribution, the output is between 0 and their maximum. To evaluate the runtime penalty of the distributions, they're measured separately from the generators.
+
 This article compares some of the C++11 generators, their boost counterparts, "/dev/urandom", Intel's hardware [RdRand][6] and good old `rand()`.  No thorough evaluation is being done on the quality of the random numbers! 
 
 ## Call times
@@ -37,7 +38,7 @@ rand() 	|	 2^31-1 	|	71.85	|	2.29
 - Very little compiler difference.
 
 ## Integers
-For generating uniform integers, there's `uniform_int_distribution<>`, which does that "using magic" ([quote from STL][7]). While this is perfectly uniform, it can be slow. There are faster, but "wronger" alternatives, like using `rng()%range`, which is listed here too to see how it performs. Be aware of the errors it introduces though! This should be correct though if `range` is cleanly divisible by `rng().max()`.
+For generating uniform integers there's `uniform_int_distribution<>` which does that "using magic" ([quote from STL][7]). While this is perfectly uniform, it can be slow. There are faster but "wronger" alternatives like `rng()%range`. Be aware of the number bias it introduces though! This should be correct though if `range` is cleanly divisible by `rng().max()`.
 
 PRNG                   | runtime [ms] | runtime | time(dist(rng)) / time(rng()) | time(modulo) / time(rng())
 ---------------------- | -----------: | ------: | --------------: | ---: |
