@@ -3,7 +3,7 @@ C++11 introduces a nice `random` [header][3] which contains a variety of generat
 
 ```c++
 std::mt19937 generator;
-std::uniform_int_distribution<int> distribution(0,42);
+std::uniform_int_distribution<int> distribution(0,42); // beware inclusive ranges!
 int random_number1 = generator;
 int random_number2 = distribution(generator);
 ```
@@ -12,21 +12,21 @@ This article compares some of the C++11 generators, their boost counterparts, "/
 
 ## Call times
 
-First the pure call times are compared, without using them with the distributions. The runtime is for generating 10'000'000 ints and writing them into a `std::vector`, which is a typical use case. To make sure the RNG speed is measured and not the vector writing overhead, a constant number is written into the vector, aka "[xkcd random][4]" to serve as a baseline. Here's the data for GCC 4.8. The plot contains additional data for clang 3.4 and 
+First the pure call times are compared, without using them with the distributions. The runtime is for generating 10'000'000 ints and writing them into a `std::vector`, which is a typical use case. To make sure the RNG speed is measured and not the vector writing overhead, a constant number is written into the vector, aka "[xkcd random][4]" to serve as a baseline. Here's the data for GCC 4.8. The plot contains additional data for clang and ICC.
 
 PRNG	|	rng.max()	|	runtime [ms]	|	runtime
 --------- | --------------------- | -------------------: | ---------:
-baseline_int	|	-	|	3.89	|	0.12
-baseline_uint_fast64_t	|	-	|	7.99	|	0.26
-std::default_random_engine	|	2^31-2	|	50.28	|	1.61
-std::mt19937	|	2^32-1	|	31.23	|	1.00
-std::mt19937_64	|	2^64-1	|	36.55	|	1.17
-std::minstd_rand	|	2^31-2	|	50.86	|	1.63
-boost::random::mt19937	|	2^32-1	|	19.95	|	0.64
-boost::random::mt19937_64	|	2^64-1	|	31.84	|	1.02
-RdRand	|	2^32-1	|	355.67	|	11.39
-/dev/urandom	|	2^32-1	|	2283.07	|	73.11
-rand()	|	2^31-1	|	71	|	2.27
+baseline_int 	|	 - 	|	4.006	|	0.13
+baseline_uint_fast64_t 	|	 - 	|	7.866	|	0.25
+std::default_random_engine 	|	 2^31-2 	|	50.959	|	1.63
+std::mt19937 	|	 2^32-1 	|	31.329	|	1.00
+std::mt19937_64 	|	 2^64-1 	|	39.365	|	1.26
+std::minstd_rand 	|	 2^31-2 	|	50.581	|	1.61
+boost::random::mt19937 	|	 2^32-1 	|	19.642	|	0.63
+boost::random::mt19937_64 	|	 2^64-1 	|	31.733	|	1.01
+RdRand 	|	 2^32-1 	|	360.57	|	11.51
+/dev/urandom 	|	 2^32-1 	|	2319.6	|	74.04
+rand() 	|	 2^31-1 	|	71.85	|	2.29
 
 - Most RNGs are fast, especially Boost. On my machine, writing a boost::random::mt19937 into a vector takes just a little over 6 cycles!
 - Hardware numbers are disappointingly slow.
@@ -34,20 +34,22 @@ rand()	|	2^31-1	|	71	|	2.27
 - The overhead for handling the vector is relatively small, so the random number generation is dominating this comparison, as expected.
 
 ## Integers
-The generators are plugged into a `uniform_int_distribution<>` plus comparison to pure `rng()` calls.
+For generating uniform integers, there's `uniform_int_distribution<>`, which does that "using magic" ([quote from STL][7]). While this is perfectly uniform, it can be slow. There are faster, but "wronger" alternatives, like using `rng()%range`, which is listed here too to see how it performs. Be aware of the errors it introduces though! This should be correct though if `range` is cleanly divisible by `rng().max()`.
 
-PRNG                   | runtime [ms] | runtime | dist(rng)/rng() | dist(rng)-rng()
----------------------- | -----------: | ------: | --------------: | ---:
-std::default_random_engine	|	183.95	|	1.04	|	3.66	|	133.67
-std::mt19937	|	176.41	|	1.00	|	5.65	|	145.18
-std::mt19937_64	|	184.77	|	1.05	|	5.06	|	148.22
-std::minstd_rand	|	183.28	|	1.04	|	3.60	|	132.42
-boost::random::mt19937	|	95.66	|	0.54	|	4.79	|	75.71
-boost::random::mt19937_64	|	197.64	|	1.12	|	6.21	|	165.80
-RdRand	|	421.37	|	2.39	|	1.18	|	65.70
-/dev/urandom	|	2321.96	|	13.16	|	1.02	|	38.89
+PRNG                   | runtime [ms] | runtime | time(dist(rng)) / time(rng()) | time(modulo) / time(rng())
+---------------------- | -----------: | ------: | --------------: | ---: |
+std::default_random_engine	|	166.854	|	0.93	|	3.27	|	1.00
+std::mt19937	|	179.883	|	1.00	|	5.74	|	1.01
+std::mt19937_64	|	177.82	|	0.99	|	4.52	|	1.01
+std::minstd_rand	|	165.676	|	0.92	|	3.28	|	1.01
+boost::random::mt19937	|	100.723	|	0.56	|	5.13	|	1.14
+boost::random::mt19937_64	|	184.388	|	1.03	|	5.81	|	1.02
+RdRand	|	426.227	|	2.37	|	1.18	|	0.99
+/dev/urandom	|	2367.53	|	13.16	|	1.02	|	1.00
 
-- Surprise: There is a huge overhead from the `uniform_int_distribution`, boost and nonboost! No idea what's going on there, especially since the random_devices seem to be less afftected. Such an overhead is inexplicable to me.
+
+- There is a huge overhead from the `uniform_int_distribution`, boost and nonboost!
+- The `rng()%range` trick is very fast. So pick your guns depending on your random needs.
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
@@ -119,3 +121,4 @@ Source code [here][2]
   [4]: http://xkcd.com/221/
   [5]: http://www.boost.org/doc/libs/1_55_0/doc/html/boost_random/reference.html#boost_random.reference.generators
   [6]: http://en.wikipedia.org/wiki/RdRand
+  [7]: http://channel9.msdn.com/Events/GoingNative/2013/rand-Considered-Harmful
