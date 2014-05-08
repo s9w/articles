@@ -17,17 +17,17 @@ First the pure call times are compared, without using them with the distribution
 
 PRNG	|	rng.max()	|	runtime [ms]	|	runtime
 --------- | --------------------- | -------------------: | ---------:
-baseline_int 	|	 - 	|	4.006	|	0.13
-baseline_uint_fast64_t 	|	 - 	|	7.866	|	0.25
-std::default_random_engine 	|	 2^31-2 	|	50.959	|	1.63
-std::mt19937 	|	 2^32-1 	|	31.329	|	1.00
-std::mt19937_64 	|	 2^64-1 	|	39.365	|	1.26
-std::minstd_rand 	|	 2^31-2 	|	50.581	|	1.61
-boost::random::mt19937 	|	 2^32-1 	|	19.642	|	0.63
-boost::random::mt19937_64 	|	 2^64-1 	|	31.733	|	1.01
-RdRand 	|	 2^32-1 	|	360.57	|	11.51
-/dev/urandom 	|	 2^32-1 	|	2319.6	|	74.04
-rand() 	|	 2^31-1 	|	71.85	|	2.29
+baseline_int 	|	 - 	|	3.731	|	0.12
+baseline_uint_fast64_t 	|	 - 	|	7.694	|	0.25
+std::default_random_engine 	|	 2^31-2 	|	50.92	|	1.64
+std::mt19937 	|	 2^32-1 	|	31.059	|	1.00
+std::mt19937_64 	|	 2^64-1 	|	36.901	|	1.19
+std::minstd_rand 	|	 2^31-2 	|	50.75	|	1.63
+boost::random::mt19937 	|	 2^32-1 	|	19.708	|	0.63
+boost::random::mt19937_64 	|	 2^64-1 	|	31.91	|	1.03
+RdRand 	|	 2^32-1 	|	364.842	|	11.75
+/dev/urandom 	|	 2^32-1 	|	2308.13	|	74.31
+rand() 	|	 2^31-1 	|	69.271	|	2.23
 
 ![call times](https://raw.githubusercontent.com/s9w/perf_cpp_random/master/plot_calls.png)
 
@@ -37,19 +37,19 @@ rand() 	|	 2^31-1 	|	71.85	|	2.29
 - The overhead for handling the vector is relatively small, so the random number generation is dominating this comparison, as expected.
 - Very little compiler difference.
 
-## Integers
+## uniform_int_distribution
 For generating uniform integers there's `uniform_int_distribution<>` which does that "using magic" ([quote from STL][7]). While this is perfectly uniform, it can be slow. There are faster but "wronger" alternatives like `rng()%range`. Be aware of the number bias it introduces though! This should be correct though if `range` is cleanly divisible by `rng().max()`.
 
 PRNG                   | runtime [ms] | runtime | time(dist(rng)) / time(rng()) | time(modulo) / time(rng())
 ---------------------- | -----------: | ------: | --------------: | ---: |
-std::default_random_engine	|	166.854	|	0.93	|	3.27	|	1.00
-std::mt19937	|	179.883	|	1.00	|	5.74	|	1.01
-std::mt19937_64	|	177.82	|	0.99	|	4.52	|	1.01
-std::minstd_rand	|	165.676	|	0.92	|	3.28	|	1.01
-boost::random::mt19937	|	100.723	|	0.56	|	5.13	|	1.14
-boost::random::mt19937_64	|	184.388	|	1.03	|	5.81	|	1.02
-RdRand	|	426.227	|	2.37	|	1.18	|	0.99
-/dev/urandom	|	2367.53	|	13.16	|	1.02	|	1.00
+std::default_random_engine	|	186.057	|	0.96	|	3.65	|	0.99
+std::mt19937	|	194.047	|	1.00	|	6.25	|	1.02
+std::mt19937_64	|	168.855	|	0.87	|	4.58	|	0.92
+std::minstd_rand	|	185.565	|	0.96	|	3.66	|	0.99
+boost::random::mt19937	|	96.529	|	0.50	|	4.90	|	1.14
+boost::random::mt19937_64	|	199.588	|	1.03	|	6.25	|	1.01
+RdRand	|	430.178	|	2.22	|	1.18	|	0.99
+/dev/urandom	|	2359.62	|	12.16	|	1.02	|	1.00
 
 Plot is for `uniform_int_distribution<>` runtimes:
 ![integers](https://raw.githubusercontent.com/s9w/perf_cpp_random/master/plot_int.png)
@@ -63,7 +63,7 @@ A common requirement for random data is single random bits, for example for spin
 
 A more efficient way is generating a number, and extract one of its bits with a bitmask. Then bitshift the number and repeat until all bits are used up. Only then do we need a new rng call. A glance at the table above reveals that we get the most random bits per runtime from the `mt19937_64` generator. An implementation of this idea could be:
 
-```c++
+```cpp
 // static if recalled in a function
 static uint_fast64_t random_ulong = rng();
 static int shifts = 0;
