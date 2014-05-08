@@ -28,10 +28,13 @@ RdRand 	|	 2^32-1 	|	360.57	|	11.51
 /dev/urandom 	|	 2^32-1 	|	2319.6	|	74.04
 rand() 	|	 2^31-1 	|	71.85	|	2.29
 
+![call times](https://raw.githubusercontent.com/s9w/perf_cpp_random/master/plot_calls.png)
+
 - Most RNGs are fast, especially Boost. On my machine, writing a boost::random::mt19937 into a vector takes just a little over 6 cycles!
 - Hardware numbers are disappointingly slow.
 - The inclusion of `rand()` is just for comparison, keep in mind that it usually has horrible numeric characteristics and commonly (at least under mingw) only has a 15bit range.
 - The overhead for handling the vector is relatively small, so the random number generation is dominating this comparison, as expected.
+- Very little compiler difference.
 
 ## Integers
 For generating uniform integers, there's `uniform_int_distribution<>`, which does that "using magic" ([quote from STL][7]). While this is perfectly uniform, it can be slow. There are faster, but "wronger" alternatives, like using `rng()%range`, which is listed here too to see how it performs. Be aware of the errors it introduces though! This should be correct though if `range` is cleanly divisible by `rng().max()`.
@@ -47,9 +50,12 @@ boost::random::mt19937_64	|	184.388	|	1.03	|	5.81	|	1.02
 RdRand	|	426.227	|	2.37	|	1.18	|	0.99
 /dev/urandom	|	2367.53	|	13.16	|	1.02	|	1.00
 
+Plot is for `uniform_int_distribution<>` runtimes:
+![integers](https://raw.githubusercontent.com/s9w/perf_cpp_random/master/plot_int.png)
 
 - There is a huge overhead from the `uniform_int_distribution`, boost and nonboost!
 - The `rng()%range` trick is very fast. So pick your guns depending on your random needs.
+- Very little compiler difference.
 
 ## Random bit generation
 A common requirement for random data is single random bits, for example for spins in physics. A naive approach for generating them would be a `dist_int(0,1)` or simply `rng()%2`. But that makes an expensive PRNG call every time when we only need one of the 32 or 64 bits.
