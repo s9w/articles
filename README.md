@@ -1,0 +1,2 @@
+- [Generating numbers with spacing density of normal distribution](http://nbviewer.ipython.org/github/s9w/articles/blob/master/normalspace.ipynb)
+- [Performance comparisons of C++ RNGs](https://github.com/s9w/articles/blob/master/perf%20cpp%20random.md)
