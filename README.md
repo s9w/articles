@@ -1,2 +1,3 @@
 - [Generating a number range with normal spacing density](http://nbviewer.ipython.org/github/s9w/articles/blob/master/normalspace.ipynb)
 - [Performance comparisons of C++ RNGs](https://github.com/s9w/articles/blob/master/perf%20cpp%20random.md)
+- [Generating random bits in C++](https://github.com/s9w/articles/blob/master/random_bits.md)
